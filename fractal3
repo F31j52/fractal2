@@ -1,0 +1,87 @@
+import turtle
+from random import randint
+
+# screen settings
+WIDTH, HEIGHT = 1600, 900
+screen = turtle.Screen()
+screen.setup(WIDTH, HEIGHT)
+screen.screensize(3 * WIDTH, 3 * HEIGHT)
+screen.bgcolor('black')
+screen.delay(0)
+screen.tracer(50)
+
+# l-system settings
+max_gens = 13
+base_axiom = 'XY'
+chr_1, rule_1 = 'X', 'F[@[-X]+X]'
+
+def apply_rules(axiom):
+    return ''.join([rule_1 if c == chr_1 else c for c in axiom])
+
+def get_result(gens, axiom):
+    for _ in range(gens):
+        axiom = apply_rules(axiom)
+    return axiom
+
+def draw_generation(gen):
+    step = 85
+    color = [0.35, 0.2, 0.0]
+    thickness = 20
+    stack = []
+
+    # limpar ecrã e repor definições
+    screen.clear()
+    screen.bgcolor('black')
+    screen.tracer(50)
+
+    # label
+    label = turtle.Turtle()
+    label.hideturtle()
+    label.penup()
+    label.speed(0)
+    label.pencolor('white')
+    label.goto(-WIDTH // 2 + 60, HEIGHT // 2 - 100)
+    label.write(f'generation: {gen}', font=("Arial", 60, "normal"))
+
+    # turtle de desenho
+    leo = turtle.Turtle()
+    leo.hideturtle()
+    leo.pensize(thickness)
+    leo.speed(0)
+    leo.penup()
+    leo.setpos(WIDTH // 6, -HEIGHT // 4 - 25)
+    leo.pendown()
+    leo.left(90)
+
+    axiom = get_result(gen, base_axiom)
+
+    for c in axiom:
+        leo.color(color)
+        if c == 'F' or c == 'X':
+            leo.forward(step)
+        elif c == '@':
+            step -= 6
+            color[1] += 0.04
+            thickness -= 2
+            thickness = max(1, thickness)
+            leo.pensize(thickness)
+        elif c == '+':
+            leo.right(randint(0, 45))
+        elif c == '-':
+            leo.left(randint(0, 45))
+        elif c == '[':
+            stack.append((leo.heading(), leo.pos(), thickness, step, color[1]))
+        elif c == ']':
+            angle_, pos_, thickness, step, color[1] = stack.pop()
+            leo.pensize(thickness)
+            leo.setheading(angle_)
+            leo.penup()
+            leo.goto(pos_)
+            leo.pendown()
+
+    screen.update()
+
+for gen in range(1, max_gens + 1):
+    draw_generation(gen)
+
+screen.exitonclick()
